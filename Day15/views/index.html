@@ -49,14 +49,25 @@
                 >HOME</a
               >
             </li>
+            {{if .FlashStatus}}
             <li class="nav-item">
               <a class="nav-link" href="add-project">ADD PROJECT</a>
             </li>
+            {{else}}
+            <li style="display: none;"></li>
+            {{end}}
             <li class="nav-item">
               <a class="nav-link" href="testimonial">TESTIMONIAL</a>
             </li>
           </ul>
-          <div class="d-flex justify-content-center">
+          <div class="d-flex justify-content-center indukreglog">
+            {{if .FlashStatus}}
+            <a class="nav-link reglog" style="margin-right: 2em; margin-top: 0.5em;">hi {{.FlashName}}</a>
+            <a class="nav-link reglog" style="margin-right: 2em; margin-top: 0.5em;" href="/logout">Logout</a>
+            {{else}}
+            <a class="nav-link reglog" style="margin-right: 2em; margin-top: 0.5em;" href="register">Register</a>
+            <a class="nav-link reglog" style="margin-right: 2em; margin-top: 0.5em;" href="login">Login</a>
+            {{end}}
             <a class="btn btn-dark" href="contact" role="button">Contact Me</a>
           </div>
         </div>
@@ -76,7 +87,7 @@
             <div class="button-contact d-flex flex-row flex-wrap gap-3 my-3">
               <button
                 type="button"
-                onclick="location.href='https://www.google.com/'
+                onclick="location.href='https://www.google.com/'"
                 class="btn btn-dark rounded-pill px-4"
               >
                 contact
@@ -158,27 +169,28 @@
               <i class="fa-brands fa-golang fa-2x"></i>
               {{end}}
             </div>
+            {{if $.FlashStatus}}
             <div
               class="btn-card-index d-flex justify-content-center gap-2"
-              style="width: 100%"
-            >
+              style="width: 100%">
               <form
                 class="d-inline"
                 action="/edit-project/{{$index}}"
                 method="GET"
-                style="width: 100%"
-              >
+                style="width: 100%">
                 <button class="btn btn-dark" style="width: 100%">edit</button>
               </form>
               <form
                 class="d-inline"
                 action="/delete-project/{{$index}}"
                 method="POST"
-                style="width: 100%"
-              >
+                style="width: 100%">
                 <button class="btn btn-dark" style="width: 100%">delete</button>
               </form>
             </div>
+            {{else}}
+            <div style="display: none;"></div>
+            {{end}}
           </div>
         </div>
         {{end}}

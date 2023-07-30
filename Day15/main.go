@@ -3,11 +3,14 @@ package main
 import (
 	"b48s1/connection"
 	"context"
+	"log"
 	"net/http"
 	"strconv"
 	"text/template"
 	"time"
 
+	"github.com/gorilla/sessions"
+	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 )
 
@@ -27,68 +30,19 @@ type Project struct {
 	Technology  []string
 }
 
-var projectData = []Project{
-	// {
-	// 	ProjectName: "Browser Automation",
-	// 	StartDate:   "2020-01-15",
-	// 	EndDate:     "2020-02-15",
-	// 	Duration:    countDuration("2020-01-15", "2020-02-15"),
-	// 	Description: "<b>IMACROS</b> <br> Lorem ipsum dolor sit amet consectetur, adipisicing elit. Omnis optio iste sapiente provident fugit, impedit adipisci deserunt obcaecati voluptatum quo, hic culpa, repudiandae consectetur quia itaque eiusaccusamus natus unde. Lorem ipsum dolor sit amet consecteturadipisicing elit. Id sunt porro cupiditate, nesciunt totam aliaslabore fugiat? Accusantium a voluptates quibusdam tempora, evenietquasi sit debitis eaque ut in magnam? Lorem ipsum dolor sit amet,consectetur adipisicing elit. Dolor minima quia recusandae doloribusfacilis fugit optio, quaerat fugiat quod architecto id dignissimoscupiditate perferendis similique saepe totam, nulla nihil ipsam. Loremipsum dolor sit amet consectetur adipisicing elit. Incidunt laboreoptio, eos qui quasi, soluta fugit totam tempore, in amet underepellat perferendis quibusdam ducimus velit deserunt maxime possimusfacilis? Lorem ipsum dolor sit amet consectetur adipisicing elit.Veritatis accusamus eius, consequuntur possimus similique teneturfugiat incidunt minima necessitatibus eum ab enim reiciendis autem iddicta eaque libero. Ea ex ducimus cupiditate veniam voluptatibus,labore nam eius vero debitis, minima doloremque, nostrum sit etconsequuntur in velit totam nemo adipisci possimus consectetur placeatodit. Sed voluptas illo, praesentium, sapiente magni pariatur evenietmaiores nesciunt quibusdam inventore eligendi ex, aliquid fugiat ihil. Voluptates ipsa magnam rerum atque in magni, harum repudiandaes Veritatis accusamus eius, consequuntur possimus similique teneturfugiat incidunt minima necessitatibus eum ab enim reiciendis autem iddicta eaque libero. Ea ex ducimus cupiditate veniam voluptatibus,labore nam eius vero debitis, minima doloremque, nostrum sit etconsequuntur in velit totam nemo adipisci possimus consectetur placeatodit. Sed voluptas illo, praesentium, sapiente magni pariatur evenietmaiores nesciunt quibusdam inventore eligendi ex, aliquid fugiatnihil. Voluptates ipsa magnam rerum atque in magni, harum repudiandaeipsam quae quo similique! Neque quibusdam facilis debitis nonrepellendus asperiores laudantium obcaecati nihil necessitatibusplaceat, eum animi, veniam harum. Lorem ipsum dolor sit ametconsectetur adipisicing elit. Officia praesentium eum perspiciatisquas, nemo magni explicabo aspernatur natus dolore, hic totam,adipisci id. Obcaecati sequi, officiis explicabo in ducimus et aliquidinventore molestiae nam suscipit quisquam accusamus? Ratione autemdicta dolores animi illo veniam pariatur ipsa eveniet nulla id velitminima totam mollitia beatae porro iusto, numquam saepe iure velvoluptates quisquam et? Tempore, illum unde, ea explicabo oditlaudantium totam, vero accusamus natus aliquid eveniet neque odio.Incidunt ducimus quia quibusdam ab perferendis culpa doloresaccusantium nesciunt voluptatibus est necessitatibus quod omnis, seddeserunt asperiores cumque quo odio. Possimus quod debitis hicvoluptates earum minima, saepe quasi. Amet error nemo sapiente quidem,nesciunt, ea cupiditate eos ab temporibus reiciendis doloribus quaeratmaiores ex. Quia nihil hic ratione facilis quas fuga et ducimusexpedita ad omnis quis corporis dignissimos accusamus minus doloribusaut, quidem ipsa voluptatibus officia voluptas temporibus? Ab temporevitae illo iusto, exercitationem debitis neque, aspernatur sequi fugitassumenda amet voluptatibus veritatis laborum nam, non dolorem eiusperspiciatis facere possimus maxime pariatur! Eius, quae? Doloremquesunt dolorum magni aperiam, iste illum optio incidunt officiis",
-	// 	NodeJs:      true,
-	// 	ReactJs:     false,
-	// 	Golang:      true,
-	// 	Javascript:  true,
-	// 	Image:       "imacros.jpg",
-	// },
-	// {
-	// 	ProjectName: "Web Automation",
-	// 	StartDate:   "2023-06-05",
-	// 	EndDate:     "2023-06-06",
-	// 	Duration:    countDuration("2023-06-05", "2023-06-06"),
-	// 	Description: "<b>BAX-Plugin</b> <br> Lorem ipsum dolor sit amet consectetur, adipisicing elit. Omnis optio iste sapiente provident fugit, impedit adipisci deserunt obcaecati voluptatum quo, hic culpa, repudiandae consectetur quia itaque eiusaccusamus natus unde. Lorem ipsum dolor sit amet consecteturadipisicing elit. Id sunt porro cupiditate, nesciunt totam aliaslabore fugiat? Accusantium a voluptates quibusdam tempora, evenietquasi sit debitis eaque ut in magnam? Lorem ipsum dolor sit amet,consectetur adipisicing elit. Dolor minima quia recusandae doloribusfacilis fugit optio, quaerat fugiat quod architecto id dignissimoscupiditate perferendis similique saepe totam, nulla nihil ipsam. Loremipsum dolor sit amet consectetur adipisicing elit. Incidunt laboreoptio, eos qui quasi, soluta fugit totam tempore, in amet underepellat perferendis quibusdam ducimus velit deserunt maxime possimusfacilis? Lorem ipsum dolor sit amet consectetur adipisicing elit.Veritatis accusamus eius, consequuntur possimus similique teneturfugiat incidunt minima necessitatibus eum ab enim reiciendis autem iddicta eaque libero. Ea ex ducimus cupiditate veniam voluptatibus,labore nam eius vero debitis, minima doloremque, nostrum sit etconsequuntur in velit totam nemo adipisci possimus consectetur placeatodit. Sed voluptas illo, praesentium, sapiente magni pariatur evenietmaiores nesciunt quibusdam inventore eligendi ex, aliquid fugiat ihil. Voluptates ipsa magnam rerum atque in magni, harum repudiandaes Veritatis accusamus eius, consequuntur possimus similique teneturfugiat incidunt minima necessitatibus eum ab enim reiciendis autem iddicta eaque libero. Ea ex ducimus cupiditate veniam voluptatibus,labore nam eius vero debitis, minima doloremque, nostrum sit etconsequuntur in velit totam nemo adipisci possimus consectetur placeatodit. Sed voluptas illo, praesentium, sapiente magni pariatur evenietmaiores nesciunt quibusdam inventore eligendi ex, aliquid fugiatnihil. Voluptates ipsa magnam rerum atque in magni, harum repudiandaeipsam quae quo similique! Neque quibusdam facilis debitis nonrepellendus asperiores laudantium obcaecati nihil necessitatibusplaceat, eum animi, veniam harum. Lorem ipsum dolor sit ametconsectetur adipisicing elit. Officia praesentium eum perspiciatisquas, nemo magni explicabo aspernatur natus dolore, hic totam,adipisci id. Obcaecati sequi, officiis explicabo in ducimus et aliquidinventore molestiae nam suscipit quisquam accusamus? Ratione autemdicta dolores animi illo veniam pariatur ipsa eveniet nulla id velitminima totam mollitia beatae porro iusto, numquam saepe iure velvoluptates quisquam et? Tempore, illum unde, ea explicabo oditlaudantium totam, vero accusamus natus aliquid eveniet neque odio.Incidunt ducimus quia quibusdam ab perferendis culpa doloresaccusantium nesciunt voluptatibus est necessitatibus quod omnis, seddeserunt asperiores cumque quo odio. Possimus quod debitis hicvoluptates earum minima, saepe quasi. Amet error nemo sapiente quidem,nesciunt, ea cupiditate eos ab temporibus reiciendis doloribus quaeratmaiores ex. Quia nihil hic ratione facilis quas fuga et ducimusexpedita ad omnis quis corporis dignissimos accusamus minus doloribusaut, quidem ipsa voluptatibus officia voluptas temporibus? Ab temporevitae illo iusto, exercitationem debitis neque, aspernatur sequi fugitassumenda amet voluptatibus veritatis laborum nam, non dolorem eiusperspiciatis facere possimus maxime pariatur! Eius, quae? Doloremquesunt dolorum magni aperiam, iste illum optio incidunt officiis",
-	// 	NodeJs:      false,
-	// 	ReactJs:     false,
-	// 	Golang:      true,
-	// 	Javascript:  false,
-	// 	Image:       "rino.jpg",
-	// },
-	// {
-	// 	ProjectName: "Desktop Automation",
-	// 	StartDate:   "2022-06-05",
-	// 	EndDate:     "2023-06-06",
-	// 	Duration:    countDuration("2022-06-05", "2023-06-06"),
-	// 	Description: "<b>Power Automate by Microsoft</b> <br> Lorem ipsum dolor sit amet consectetur, adipisicing elit. Omnis optio iste sapiente provident fugit, impedit adipisci deserunt obcaecati voluptatum quo, hic culpa, repudiandae consectetur quia itaque eiusaccusamus natus unde. Lorem ipsum dolor sit amet consecteturadipisicing elit. Id sunt porro cupiditate, nesciunt totam aliaslabore fugiat? Accusantium a voluptates quibusdam tempora, evenietquasi sit debitis eaque ut in magnam? Lorem ipsum dolor sit amet,consectetur adipisicing elit. Dolor minima quia recusandae doloribusfacilis fugit optio, quaerat fugiat quod architecto id dignissimoscupiditate perferendis similique saepe totam, nulla nihil ipsam. Loremipsum dolor sit amet consectetur adipisicing elit. Incidunt laboreoptio, eos qui quasi, soluta fugit totam tempore, in amet underepellat perferendis quibusdam ducimus velit deserunt maxime possimusfacilis? Lorem ipsum dolor sit amet consectetur adipisicing elit.Veritatis accusamus eius, consequuntur possimus similique teneturfugiat incidunt minima necessitatibus eum ab enim reiciendis autem iddicta eaque libero. Ea ex ducimus cupiditate veniam voluptatibus,labore nam eius vero debitis, minima doloremque, nostrum sit etconsequuntur in velit totam nemo adipisci possimus consectetur placeatodit. Sed voluptas illo, praesentium, sapiente magni pariatur evenietmaiores nesciunt quibusdam inventore eligendi ex, aliquid fugiat ihil. Voluptates ipsa magnam rerum atque in magni, harum repudiandaes Veritatis accusamus eius, consequuntur possimus similique teneturfugiat incidunt minima necessitatibus eum ab enim reiciendis autem iddicta eaque libero. Ea ex ducimus cupiditate veniam voluptatibus,labore nam eius vero debitis, minima doloremque, nostrum sit etconsequuntur in velit totam nemo adipisci possimus consectetur placeatodit. Sed voluptas illo, praesentium, sapiente magni pariatur evenietmaiores nesciunt quibusdam inventore eligendi ex, aliquid fugiatnihil. Voluptates ipsa magnam rerum atque in magni, harum repudiandaeipsam quae quo similique! Neque quibusdam facilis debitis nonrepellendus asperiores laudantium obcaecati nihil necessitatibusplaceat, eum animi, veniam harum. Lorem ipsum dolor sit ametconsectetur adipisicing elit. Officia praesentium eum perspiciatisquas, nemo magni explicabo aspernatur natus dolore, hic totam,adipisci id. Obcaecati sequi, officiis explicabo in ducimus et aliquidinventore molestiae nam suscipit quisquam accusamus? Ratione autemdicta dolores animi illo veniam pariatur ipsa eveniet nulla id velitminima totam mollitia beatae porro iusto, numquam saepe iure velvoluptates quisquam et? Tempore, illum unde, ea explicabo oditlaudantium totam, vero accusamus natus aliquid eveniet neque odio.Incidunt ducimus quia quibusdam ab perferendis culpa doloresaccusantium nesciunt voluptatibus est necessitatibus quod omnis, seddeserunt asperiores cumque quo odio. Possimus quod debitis hicvoluptates earum minima, saepe quasi. Amet error nemo sapiente quidem,nesciunt, ea cupiditate eos ab temporibus reiciendis doloribus quaeratmaiores ex. Quia nihil hic ratione facilis quas fuga et ducimusexpedita ad omnis quis corporis dignissimos accusamus minus doloribusaut, quidem ipsa voluptatibus officia voluptas temporibus? Ab temporevitae illo iusto, exercitationem debitis neque, aspernatur sequi fugitassumenda amet voluptatibus veritatis laborum nam, non dolorem eiusperspiciatis facere possimus maxime pariatur! Eius, quae? Doloremquesunt dolorum magni aperiam, iste illum optio incidunt officiis",
-	// 	NodeJs:      true,
-	// 	ReactJs:     true,
-	// 	Golang:      true,
-	// 	Javascript:  true,
-	// 	Image:       "powerautomate.jpg",
-	// },
-	// {
-	// 	ProjectName: "AI Desktop",
-	// 	StartDate:   "2022-06-05",
-	// 	EndDate:     "2023-06-06",
-	// 	Duration:    countDuration("2022-06-05", "2023-06-06"),
-	// 	Description: "<b>BAX - AI Desktop</b> <br> Lorem ipsum dolor sit amet consectetur, adipisicing elit. Omnis optio iste sapiente provident fugit, impedit adipisci deserunt obcaecati voluptatum quo, hic culpa, repudiandae consectetur quia itaque eiusaccusamus natus unde. Lorem ipsum dolor sit amet consecteturadipisicing elit. Id sunt porro cupiditate, nesciunt totam aliaslabore fugiat? Accusantium a voluptates quibusdam tempora, evenietquasi sit debitis eaque ut in magnam? Lorem ipsum dolor sit amet,consectetur adipisicing elit. Dolor minima quia recusandae doloribusfacilis fugit optio, quaerat fugiat quod architecto id dignissimoscupiditate perferendis similique saepe totam, nulla nihil ipsam. Loremipsum dolor sit amet consectetur adipisicing elit. Incidunt laboreoptio, eos qui quasi, soluta fugit totam tempore, in amet underepellat perferendis quibusdam ducimus velit deserunt maxime possimusfacilis? Lorem ipsum dolor sit amet consectetur adipisicing elit.Veritatis accusamus eius, consequuntur possimus similique teneturfugiat incidunt minima necessitatibus eum ab enim reiciendis autem iddicta eaque libero. Ea ex ducimus cupiditate veniam voluptatibus,labore nam eius vero debitis, minima doloremque, nostrum sit etconsequuntur in velit totam nemo adipisci possimus consectetur placeatodit. Sed voluptas illo, praesentium, sapiente magni pariatur evenietmaiores nesciunt quibusdam inventore eligendi ex, aliquid fugiat ihil. Voluptates ipsa magnam rerum atque in magni, harum repudiandaes Veritatis accusamus eius, consequuntur possimus similique teneturfugiat incidunt minima necessitatibus eum ab enim reiciendis autem iddicta eaque libero. Ea ex ducimus cupiditate veniam voluptatibus,labore nam eius vero debitis, minima doloremque, nostrum sit etconsequuntur in velit totam nemo adipisci possimus consectetur placeatodit. Sed voluptas illo, praesentium, sapiente magni pariatur evenietmaiores nesciunt quibusdam inventore eligendi ex, aliquid fugiatnihil. Voluptates ipsa magnam rerum atque in magni, harum repudiandaeipsam quae quo similique! Neque quibusdam facilis debitis nonrepellendus asperiores laudantium obcaecati nihil necessitatibusplaceat, eum animi, veniam harum. Lorem ipsum dolor sit ametconsectetur adipisicing elit. Officia praesentium eum perspiciatisquas, nemo magni explicabo aspernatur natus dolore, hic totam,adipisci id. Obcaecati sequi, officiis explicabo in ducimus et aliquidinventore molestiae nam suscipit quisquam accusamus? Ratione autemdicta dolores animi illo veniam pariatur ipsa eveniet nulla id velitminima totam mollitia beatae porro iusto, numquam saepe iure velvoluptates quisquam et? Tempore, illum unde, ea explicabo oditlaudantium totam, vero accusamus natus aliquid eveniet neque odio.Incidunt ducimus quia quibusdam ab perferendis culpa doloresaccusantium nesciunt voluptatibus est necessitatibus quod omnis, seddeserunt asperiores cumque quo odio. Possimus quod debitis hicvoluptates earum minima, saepe quasi. Amet error nemo sapiente quidem,nesciunt, ea cupiditate eos ab temporibus reiciendis doloribus quaeratmaiores ex. Quia nihil hic ratione facilis quas fuga et ducimusexpedita ad omnis quis corporis dignissimos accusamus minus doloribusaut, quidem ipsa voluptatibus officia voluptas temporibus? Ab temporevitae illo iusto, exercitationem debitis neque, aspernatur sequi fugitassumenda amet voluptatibus veritatis laborum nam, non dolorem eiusperspiciatis facere possimus maxime pariatur! Eius, quae? Doloremquesunt dolorum magni aperiam, iste illum optio incidunt officiis",
-	// 	NodeJs:      true,
-	// 	ReactJs:     true,
-	// 	Golang:      true,
-	// 	Javascript:  true,
-	// 	Image:       "ai.jpg",
-	// },
-	// {
-	// 	ProjectName: "Web Bot Desktop Automation",
-	// 	StartDate:   "2022-01-05",
-	// 	EndDate:     "2023-06-06",
-	// 	Duration:    countDuration("2022-06-05", "2023-06-06"),
-	// 	Description: "<b>Imacros Web -> Power Automate </b> <br> Lorem ipsum dolor sit amet consectetur, adipisicing elit. Omnis optio iste sapiente provident fugit, impedit adipisci deserunt obcaecati voluptatum quo, hic culpa, repudiandae consectetur quia itaque eiusaccusamus natus unde. Lorem ipsum dolor sit amet consecteturadipisicing elit. Id sunt porro cupiditate, nesciunt totam aliaslabore fugiat? Accusantium a voluptates quibusdam tempora, evenietquasi sit debitis eaque ut in magnam? Lorem ipsum dolor sit amet,consectetur adipisicing elit. Dolor minima quia recusandae doloribusfacilis fugit optio, quaerat fugiat quod architecto id dignissimoscupiditate perferendis similique saepe totam, nulla nihil ipsam. Loremipsum dolor sit amet consectetur adipisicing elit. Incidunt laboreoptio, eos qui quasi, soluta fugit totam tempore, in amet underepellat perferendis quibusdam ducimus velit deserunt maxime possimusfacilis? Lorem ipsum dolor sit amet consectetur adipisicing elit.Veritatis accusamus eius, consequuntur possimus similique teneturfugiat incidunt minima necessitatibus eum ab enim reiciendis autem iddicta eaque libero. Ea ex ducimus cupiditate veniam voluptatibus,labore nam eius vero debitis, minima doloremque, nostrum sit etconsequuntur in velit totam nemo adipisci possimus consectetur placeatodit. Sed voluptas illo, praesentium, sapiente magni pariatur evenietmaiores nesciunt quibusdam inventore eligendi ex, aliquid fugiat ihil. Voluptates ipsa magnam rerum atque in magni, harum repudiandaes Veritatis accusamus eius, consequuntur possimus similique teneturfugiat incidunt minima necessitatibus eum ab enim reiciendis autem iddicta eaque libero. Ea ex ducimus cupiditate veniam voluptatibus,labore nam eius vero debitis, minima doloremque, nostrum sit etconsequuntur in velit totam nemo adipisci possimus consectetur placeatodit. Sed voluptas illo, praesentium, sapiente magni pariatur evenietmaiores nesciunt quibusdam inventore eligendi ex, aliquid fugiatnihil. Voluptates ipsa magnam rerum atque in magni, harum repudiandaeipsam quae quo similique! Neque quibusdam facilis debitis nonrepellendus asperiores laudantium obcaecati nihil necessitatibusplaceat, eum animi, veniam harum. Lorem ipsum dolor sit ametconsectetur adipisicing elit. Officia praesentium eum perspiciatisquas, nemo magni explicabo aspernatur natus dolore, hic totam,adipisci id. Obcaecati sequi, officiis explicabo in ducimus et aliquidinventore molestiae nam suscipit quisquam accusamus? Ratione autemdicta dolores animi illo veniam pariatur ipsa eveniet nulla id velitminima totam mollitia beatae porro iusto, numquam saepe iure velvoluptates quisquam et? Tempore, illum unde, ea explicabo oditlaudantium totam, vero accusamus natus aliquid eveniet neque odio.Incidunt ducimus quia quibusdam ab perferendis culpa doloresaccusantium nesciunt voluptatibus est necessitatibus quod omnis, seddeserunt asperiores cumque quo odio. Possimus quod debitis hicvoluptates earum minima, saepe quasi. Amet error nemo sapiente quidem,nesciunt, ea cupiditate eos ab temporibus reiciendis doloribus quaeratmaiores ex. Quia nihil hic ratione facilis quas fuga et ducimusexpedita ad omnis quis corporis dignissimos accusamus minus doloribusaut, quidem ipsa voluptatibus officia voluptas temporibus? Ab temporevitae illo iusto, exercitationem debitis neque, aspernatur sequi fugitassumenda amet voluptatibus veritatis laborum nam, non dolorem eiusperspiciatis facere possimus maxime pariatur! Eius, quae? Doloremquesunt dolorum magni aperiam, iste illum optio incidunt officiis ",
-	// 	NodeJs:      true,
-	// 	ReactJs:     true,
-	// 	Golang:      true,
-	// 	Javascript:  true,
-	// 	Image:       "nasipadang.jpg",
-	// },
+type User struct {
+	id       int
+	name     string
+	email    string
+	password string
 }
+
+type SessionData struct {
+	isLogin bool
+	name    string
+}
+
+var userData = SessionData{}
 
 func main() {
 
@@ -98,6 +52,8 @@ func main() {
 	// Mengatur penanganan file static(jss,css,gambar)
 	e.Static("/public", "public")
 
+	e.Use(session.Middleware(sessions.NewCookieStore([]byte("session"))))
+
 	// Daftar Routes GET(digunakan untuk permintaan get)
 	e.GET("/hello", helloWorld)
 	e.GET("/", home)
@@ -106,11 +62,19 @@ func main() {
 	e.GET("/add-project", addProject)
 	e.GET("/edit-project/:id", editProject)
 	e.GET("/project/:id", projectDetail)
+	e.GET("/register", register)
+	e.GET("/login", login)
+	e.GET("/logout", logout)
 
 	//Daftar Routes POST(digunakan untuk permintaan post)
+	e.POST("/submitregister", submitRegister)
+	e.POST("/submitlogin", submitLogin)
+	// e.POST("/", submitLogin)
 	e.POST("/", submitProject)
 	e.POST("/edit-project/:id", submitEditedProject)
 	e.POST("/delete-project/:id", deleteProject)
+	// e.POST("/login", logout)
+	// e.POST("/submitlogout", submitlogout)
 
 	// Server(akan mengirimkan pesan fatal dan menghentikan eksekusi program)
 	e.Logger.Fatal(e.Start("localhost:8000"))
@@ -118,6 +82,24 @@ func main() {
 
 func helloWorld(c echo.Context) error {
 	return c.String(http.StatusOK, "Hello Worldl!")
+}
+
+func login(c echo.Context) error {
+	var tmpl, err = template.ParseFiles("views/login.html")
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
+	}
+	return tmpl.Execute(c.Response(), nil)
+}
+
+func register(c echo.Context) error {
+	var tmpl, err = template.ParseFiles("views/register.html")
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
+	}
+	return tmpl.Execute(c.Response(), nil)
 }
 
 func home(c echo.Context) error {
@@ -156,10 +138,24 @@ func home(c echo.Context) error {
 		dataProjects = append(dataProjects, each)
 	}
 
+	session, _ := session.Get("session", c)
+
+	if session.Values["isLogin"] != true {
+		userData.isLogin = false
+	} else {
+		userData.isLogin = session.Values["isLogin"].(bool)
+		userData.name = session.Values["name"].(string)
+	}
 	projects := map[string]interface{}{
-		"Projects": dataProjects,
+		"Projects":     dataProjects,
+		"dataSession":  userData,
+		"FlashStatus":  session.Values["status"],
+		"FlashMessage": session.Values["message"],
+		"FlashName":    session.Values["name"],
 	}
 	return tmpl.Execute(c.Response(), projects)
+
+	// return tmpl.Execute(c.Response(), dataSession)
 }
 
 func addProject(c echo.Context) error {
@@ -168,7 +164,23 @@ func addProject(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
 	}
-	return tmpl.Execute(c.Response(), nil)
+	session, _ := session.Get("session", c)
+
+	if session.Values["isLogin"] != true {
+		userData.isLogin = false
+	} else {
+		userData.isLogin = session.Values["isLogin"].(bool)
+		userData.name = session.Values["name"].(string)
+	}
+
+	dataSession := map[string]interface{}{
+		"dataSession":  userData,
+		"FlashStatus":  session.Values["status"],
+		"FlashMessage": session.Values["message"],
+		"FlashName":    session.Values["name"],
+	}
+
+	return tmpl.Execute(c.Response(), dataSession)
 }
 
 func contact(c echo.Context) error {
@@ -177,7 +189,23 @@ func contact(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
 	}
-	return tmpl.Execute(c.Response(), nil)
+	session, _ := session.Get("session", c)
+
+	if session.Values["isLogin"] != true {
+		userData.isLogin = false
+	} else {
+		userData.isLogin = session.Values["isLogin"].(bool)
+		userData.name = session.Values["name"].(string)
+	}
+
+	dataSession := map[string]interface{}{
+		"dataSession":  userData,
+		"FlashStatus":  session.Values["status"],
+		"FlashMessage": session.Values["message"],
+		"FlashName":    session.Values["name"],
+	}
+
+	return tmpl.Execute(c.Response(), dataSession)
 }
 
 func testimonial(c echo.Context) error {
@@ -186,7 +214,23 @@ func testimonial(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
 	}
-	return tmpl.Execute(c.Response(), nil)
+	session, _ := session.Get("session", c)
+
+	if session.Values["isLogin"] != true {
+		userData.isLogin = false
+	} else {
+		userData.isLogin = session.Values["isLogin"].(bool)
+		userData.name = session.Values["name"].(string)
+	}
+
+	dataSession := map[string]interface{}{
+		"dataSession":  userData,
+		"FlashStatus":  session.Values["status"],
+		"FlashMessage": session.Values["message"],
+		"FlashName":    session.Values["name"],
+	}
+
+	return tmpl.Execute(c.Response(), dataSession)
 }
 
 func projectDetail(c echo.Context) error {
@@ -202,7 +246,7 @@ func projectDetail(c echo.Context) error {
 
 	ProjectDetail := Project{}
 
-	errQuery := connection.Conn.QueryRow(context.Background(), "SELECT * FROM tb_project WHERE id=$1", idToInt).Scan(&ProjectDetail.Id, &ProjectDetail.ProjectName, &ProjectDetail.Description, &ProjectDetail.Technology, &ProjectDetail.Image, &ProjectDetail.StartDate, &ProjectDetail.EndDate)
+	errQuery := connection.Conn.QueryRow(context.Background(), "SELECT * FROM tb_project WHERE id=$1", idToInt).Scan(&ProjectDetail.Id, &ProjectDetail.ProjectName, &ProjectDetail.Description, &ProjectDetail.Image, &ProjectDetail.StartDate, &ProjectDetail.EndDate, &ProjectDetail.Technology)
 
 	if errQuery != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
@@ -223,11 +267,25 @@ func projectDetail(c echo.Context) error {
 		ProjectDetail.NodeJs = true
 	}
 
+	session, _ := session.Get("session", c)
+
+	if session.Values["isLogin"] != true {
+		userData.isLogin = false
+	} else {
+		userData.isLogin = session.Values["isLogin"].(bool)
+		userData.name = session.Values["name"].(string)
+	}
+
 	data := map[string]interface{}{
 		"Id":              id,
 		"Project":         ProjectDetail,
 		"startDateString": ProjectDetail.StartDate.Format("2006-01-02"),
 		"endDateString":   ProjectDetail.EndDate.Format("2006-01-02"),
+		"dataSession":     userData,
+		"FlashStatus":     session.Values["status"],
+		"FlashMessage":    session.Values["message"],
+		"FlashName":       session.Values["name"],
+
 		// "startDateString": ProjectDetail.StartDate.Format("12-31-2002"),
 		// "endDateString":   ProjectDetail.EndDate.Format("12-31-2002"),
 	}
@@ -248,7 +306,7 @@ func editProject(c echo.Context) error {
 
 	ProjectDetail := Project{}
 
-	errQuery := connection.Conn.QueryRow(context.Background(), "SELECT * FROM tb_project WHERE id=$1", idToInt).Scan(&ProjectDetail.Id, &ProjectDetail.ProjectName, &ProjectDetail.Description, &ProjectDetail.Technology, &ProjectDetail.Image, &ProjectDetail.StartDate, &ProjectDetail.EndDate)
+	errQuery := connection.Conn.QueryRow(context.Background(), "SELECT * FROM tb_project WHERE id=$1", idToInt).Scan(&ProjectDetail.Id, &ProjectDetail.ProjectName, &ProjectDetail.Description, &ProjectDetail.Image, &ProjectDetail.StartDate, &ProjectDetail.EndDate, &ProjectDetail.Technology)
 
 	if errQuery != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
@@ -268,15 +326,36 @@ func editProject(c echo.Context) error {
 	if checkValue(ProjectDetail.Technology, "NodeJs") {
 		ProjectDetail.NodeJs = true
 	}
+	session, _ := session.Get("session", c)
+
+	if session.Values["isLogin"] != true {
+		userData.isLogin = false
+	} else {
+		userData.isLogin = session.Values["isLogin"].(bool)
+		userData.name = session.Values["name"].(string)
+	}
 
 	data := map[string]interface{}{
 		"Id":              id,
 		"Project":         ProjectDetail,
 		"startDateString": ProjectDetail.StartDate.Format("2006-01-02"),
 		"endDateString":   ProjectDetail.EndDate.Format("2006-01-02"),
+		"dataSession":     userData,
+		"FlashStatus":     session.Values["status"],
+		"FlashMessage":    session.Values["message"],
+		"FlashName":       session.Values["name"],
 	}
 
 	return tmpl.Execute(c.Response(), data)
+}
+
+func logout(c echo.Context) error {
+	session, _ := session.Get("session", c)
+	session.Options.MaxAge = -1
+	session.Values["isLogin"] = false
+	session.Save(c.Request(), c.Response())
+
+	return c.Redirect(http.StatusTemporaryRedirect, "/")
 }
 
 func submitProject(c echo.Context) error {
@@ -314,7 +393,7 @@ func submitEditedProject(c echo.Context) error {
 	technoGolang := c.FormValue("Golang")
 	technoNodeJs := c.FormValue("NodeJs")
 
-	_, err := connection.Conn.Exec(context.Background(), "UPDATE tb_project SET project_name=$1, description=$2, technology[1]=$3, technology[2]=$4, technology[3]=$5, technology[4]=$6, image=$7, start_date=$8, end_date=$9 WHERE id=$10", title, content, image, startdate, enddate, id, technoReactJs, technoJavascript, technoGolang, technoNodeJs)
+	_, err := connection.Conn.Exec(context.Background(), "UPDATE tb_project SET project_name=$1, description=$2, image=$7, start_date=$8, end_date=$9, technology[1]=$3, technology[2]=$4, technology[3]=$5, technology[4]=$6, WHERE id=$10", title, content, image, startdate, enddate, id, technoReactJs, technoJavascript, technoGolang, technoNodeJs)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err.Error())
@@ -359,4 +438,62 @@ func checkValue(slice []string, object string) bool {
 		}
 	}
 	return false
+}
+func submitRegister(c echo.Context) error {
+
+	// Menangkap Id dari Query Params
+	name := c.FormValue("name")
+	email := c.FormValue("email")
+	password := c.FormValue("password")
+
+	_, err := connection.Conn.Exec(context.Background(), "INSERT INTO tb_akun (name, email, password) VALUES ($1, $2, $3)", name, email, password)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	return c.Redirect(http.StatusMovedPermanently, "/login")
+}
+
+func redirectMessage(c echo.Context, message string, status bool, path string) error {
+	session, _ := session.Get("session", c)
+	session.Values["message"] = message
+	session.Values["status"] = status
+	session.Save(c.Request(), c.Response())
+
+	return c.Redirect(http.StatusSeeOther, path)
+}
+
+func submitLogin(c echo.Context) error {
+	err := c.Request().ParseForm()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	email := c.FormValue("email")
+	password := c.FormValue("password")
+
+	var user = User{}
+
+	errEmail := connection.Conn.QueryRow(context.Background(), "SELECT * FROM tb_akun WHERE email=$1", email).Scan(&user.id, &user.name, &user.email, &user.password)
+	errPass := connection.Conn.QueryRow(context.Background(), "SELECT * FROM tb_akun WHERE password=$1", password).Scan(&user.id, &user.name, &user.email, &user.password)
+
+	if errEmail != nil {
+		c.JSON(http.StatusInternalServerError, "Email or Password wrong!")
+	}
+
+	if errPass != nil {
+		c.JSON(http.StatusInternalServerError, "Email or Password wrong!")
+	}
+
+	session, _ := session.Get("session", c)
+	session.Options.MaxAge = 36000 //3satuan detik
+	session.Values["message"] = "login Success"
+	session.Values["status"] = true // show alert
+	session.Values["name"] = user.name
+	session.Values["id"] = user.id
+	session.Values["isLogin"] = true // access login
+	session.Save(c.Request(), c.Response())
+
+	return redirectMessage(c, "Login Succes", true, "/")
 }

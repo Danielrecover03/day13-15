@@ -18,7 +18,7 @@
     <nav class="navbar navbar-expand-lg bg-body-tertiary px-4 py-3">
       <div class="container-fluid">
         <a class="navbar-brand" href="https://dumbways.id/" target="_blank">
-          <img src="public/images/yellow-lamborghini.jpg" />
+          <img src="public/images/logo.png" />
         </a>
         <button
           class="navbar-toggler"
@@ -37,17 +37,30 @@
         >
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             <li class="nav-item">
-              <a class="nav-link" aria-current="page" href="/">HOME</a>
+              <a class="nav-link active fw-bold" aria-current="page" href="/"
+                >HOME</a
+              >
             </li>
+            {{if .FlashStatus}}
             <li class="nav-item">
               <a class="nav-link" href="add-project">ADD PROJECT</a>
             </li>
+            {{else}}
+            <li style="display: none;"></li>
+            {{end}}
             <li class="nav-item">
               <a class="nav-link" href="testimonial">TESTIMONIAL</a>
             </li>
           </ul>
-          <div class="d-flex justify-content-center">
-            <a class="btn btn-dark" href="#" role="button">Contact Me</a>
+          <div class="d-flex justify-content-center indukreglog">
+            {{if .FlashStatus}}
+            <a class="nav-link reglog" style="margin-right: 2em; margin-top: 0.5em;">hi {{.FlashName}}</a>
+            <a class="nav-link reglog" style="margin-right: 2em; margin-top: 0.5em;" href="/logout">Logout</a>
+            {{else}}
+            <a class="nav-link reglog" style="margin-right: 2em; margin-top: 0.5em;" href="register">Register</a>
+            <a class="nav-link reglog" style="margin-right: 2em; margin-top: 0.5em;" href="login">Login</a>
+            {{end}}
+            <a class="btn btn-dark" href="contact" role="button">Contact Me</a>
           </div>
         </div>
       </div>
