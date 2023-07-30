@@ -202,7 +202,7 @@ func projectDetail(c echo.Context) error {
 
 	ProjectDetail := Project{}
 
-	errQuery := connection.Conn.QueryRow(context.Background(), "SELECT * FROM tb_project WHERE id=$1", idToInt).Scan(&ProjectDetail.Id, &ProjectDetail.ProjectName, &ProjectDetail.Description, &ProjectDetail.Technology, &ProjectDetail.Image, &ProjectDetail.StartDate, &ProjectDetail.EndDate)
+	errQuery := connection.Conn.QueryRow(context.Background(), "SELECT * FROM tb_project WHERE id=$1", idToInt).Scan(&ProjectDetail.Id, &ProjectDetail.ProjectName, &ProjectDetail.Description, &ProjectDetail.Image, &ProjectDetail.StartDate, &ProjectDetail.EndDate, &ProjectDetail.Technology)
 
 	if errQuery != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
@@ -248,7 +248,7 @@ func editProject(c echo.Context) error {
 
 	ProjectDetail := Project{}
 
-	errQuery := connection.Conn.QueryRow(context.Background(), "SELECT * FROM tb_project WHERE id=$1", idToInt).Scan(&ProjectDetail.Id, &ProjectDetail.ProjectName, &ProjectDetail.Description, &ProjectDetail.Technology, &ProjectDetail.Image, &ProjectDetail.StartDate, &ProjectDetail.EndDate)
+	errQuery := connection.Conn.QueryRow(context.Background(), "SELECT * FROM tb_project WHERE id=$1", idToInt).Scan(&ProjectDetail.Id, &ProjectDetail.ProjectName, &ProjectDetail.Description, &ProjectDetail.Image, &ProjectDetail.StartDate, &ProjectDetail.EndDate, &ProjectDetail.Technology)
 
 	if errQuery != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
@@ -314,7 +314,7 @@ func submitEditedProject(c echo.Context) error {
 	technoGolang := c.FormValue("Golang")
 	technoNodeJs := c.FormValue("NodeJs")
 
-	_, err := connection.Conn.Exec(context.Background(), "UPDATE tb_project SET project_name=$1, description=$2, technology[1]=$3, technology[2]=$4, technology[3]=$5, technology[4]=$6, image=$7, start_date=$8, end_date=$9 WHERE id=$10", title, content, image, startdate, enddate, id, technoReactJs, technoJavascript, technoGolang, technoNodeJs)
+	_, err := connection.Conn.Exec(context.Background(), "UPDATE tb_project SET project_name=$1, description=$2, image=$7, start_date=$8, end_date=$9, technology[1]=$3, technology[2]=$4, technology[3]=$5, technology[4]=$6, WHERE id=$10", title, content, image, startdate, enddate, id, technoReactJs, technoJavascript, technoGolang, technoNodeJs)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err.Error())
